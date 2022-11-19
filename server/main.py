@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import List
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Body, Depends
@@ -26,29 +27,27 @@ posts = [
     }
 ]
 
-users = [
-    {
-        "id": UUID("47aeabdd-cf86-4514-98c9-1c5bad9432be"),
-        "first_name": "Luci",
-        "last_name": "Ruiz",
-        "organization_name": "Apple",
-        "email": "Ruizlui@gmail.com",
-        "created_at": "2022-11-18 19:29:36.646296",
-        "updated_at": "2022-11-18 19:29:36.646296",
-        "password": "12345678",
-        "verified": False
-    },
-    {
-        "id": UUID("444eabdd-cf86-4514-98c9-1c5bad9432be"),
-        "first_name": "Ann",
-        "last_name": "Bino",
-        "organization_name": "Peace.",
-        "email": "Annny@gmail.com",
-        "created_at": "2022-11-18 19:29:36.646296",
-        "updated_at": "2022-11-18 19:29:36.646296",
-        "password": "12345888",
-        "verified": False
-    },
+db: List[UserSchema] = [
+    UserSchema(
+        id=UUID("8db53d10-91dd-4988-b809-a8739365bf96"),
+        first_name="Kamila",
+        last_name="Basha",
+        organization_name="Apple",
+        email="KamilaYaJamila@gmail.com",
+        created_at="2022-11-18 19:29:36.646296",
+        updated_at="2022-11-18 19:29:36.646296",
+        password="12345678",
+    ),
+    UserSchema(
+        id=UUID("444eabdd-cf86-4514-98c9-1c5bad9432be"),
+        first_name="Luci",
+        last_name="Ruiz",
+        organization_name="Meta",
+        email="Ruizlui@gmail.com",
+        created_at="2022-11-18 19:29:36.646296",
+        updated_at="2022-11-18 19:29:36.646296",
+        password="12345678",
+    ),
 ]
 
 app = FastAPI()
@@ -92,16 +91,15 @@ def add_post(post: PostSchema):
 
 @app.get("/user", tags=["users"])
 def get_users():
-    print(type(users))
     return {
-        "data": users
+        "data": db
     }
 
 
 @app.get("/user/{user_id}", tags=["users"])
 def get_single_user(user_id: UUID):
-    for user in users:
-        if str(user["id"]) == str(user_id):
+    for user in db:
+        if str(user.id) == str(user_id):
             return {
                 "data": user
             }
@@ -116,37 +114,33 @@ def get_single_user(user_id: UUID):
 def user_signup(new_user: CreateUserSchema):
     # TODO: Check if user already exist
     # Check if user already exist
-    for user in users:
-        if user["email"] == new_user.email:
+    for user in db:
+        if user.email == new_user.email.lower():
             raise HTTPException(status_code=400,
                                 detail='Account with same Email already exist')
+    # Check if password valid
     if new_user.password != new_user.passwordConfirm:
         raise HTTPException(status_code=400,
                             detail='Passwords do not match')
     del new_user.passwordConfirm
-    new_user.verified = True
     hashed_password = hash_password(new_user.password)
-    user = {
-        "id": new_user.id,
-        "first_name": new_user.first_name,
-        "last_name": new_user.last_name,
-        "organization_name": new_user.organization_name,
-        "email": new_user.email.lower(),
-        "password": hashed_password,
-        "created_at": datetime.utcnow(),
-        "updated_at": None,
-        "verified": True
-    }
-    # noinspection PyTypeChecker
-    users.append(user)
-    print(user)
-    return sign_jwt(user["email"])
+    user_sch = UserSchema(
+        first_name=new_user.first_name,
+        last_name=new_user.last_name,
+        organization_name=new_user.organization_name,
+        email=new_user.email.lower(),
+        password=hashed_password,
+        created_at=datetime.utcnow(),
+        updated_at=None
+    )
+    db.append(user_sch)
+    return sign_jwt(user_sch.email)
 
 
 # This function checks and verify the user - if user with same email exists it will verify password
 def check_user(data: UserLoginSchema):
-    for user in users:
-        if user["email"] == data.email and verify_password(data.password, user["password"]):
+    for user in db:
+        if user.email == data.email and verify_password(data.password, user["password"]):
             return True
     return False
 

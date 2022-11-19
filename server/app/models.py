@@ -1,8 +1,10 @@
 
 from datetime import datetime
+from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, EmailStr
+from email_validator import validate_email
+from pydantic import BaseModel, Field, EmailStr, validator
 from pydantic.types import constr
 
 
@@ -23,13 +25,14 @@ class PostSchema(BaseModel):
 
 # User Schema
 class UserSchema(BaseModel):
-    id: UUID
+    id: Optional[UUID] = Field(default_factory=uuid4)
     first_name: str = Field(default=None)
     last_name: str = Field(default=None)
     organization_name: str = Field(default=None)
     email: EmailStr = Field(default=None)
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    password: constr(min_length=8)
+    created_at: Optional[datetime] = Field(default=None)
+    updated_at: Optional[datetime] = Field(default=None)
 
     class Config:
         schema_extra = {
@@ -47,9 +50,13 @@ class UserSchema(BaseModel):
             }
         }
 
+    @validator('email')
+    def email_validation(cls, email):
+        email_object = validate_email(email)
+        return email_object.email
+
 
 class CreateUserSchema(UserSchema):
-    password: constr(min_length=8)
     passwordConfirm: str
     verified: bool = False
 
