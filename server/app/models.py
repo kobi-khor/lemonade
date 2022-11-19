@@ -50,10 +50,13 @@ class UserSchema(BaseModel):
             }
         }
 
+    # Email validation
     @validator('email')
     def email_validation(cls, email):
         email_object = validate_email(email)
         return email_object.email
+
+    # Names validation??
 
 
 class CreateUserSchema(UserSchema):
@@ -73,3 +76,11 @@ class UserLoginSchema(BaseModel):
                 "password": "12345678",
             }
         }
+
+
+class UserUpdateRequest(BaseModel):
+    first_name: Optional[str]
+    last_name: Optional[str]
+    organization_name: Optional[str]
+    email: Optional[EmailStr]
+    password: Optional[str]
