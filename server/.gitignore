@@ -1,3 +1,5 @@
+# Editors
+.vscode/
 .idea/
 
 # dotenv
@@ -7,6 +9,13 @@
 .venv
 venv/
 ENV/
+
+
+# Vagrant
+.vagrant/
+
+# Mac/OSX
+.DS_Store
 
 # Installer logs
 pip-log.txt
@@ -25,6 +34,7 @@ coverage.xml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
+app/__pycache__/
 *.py[cod]
 *$py.class
 
